@@ -8,16 +8,27 @@
     android:paddingTop="@dimen/activity_vertical_margin">
 
     <EditText
-        android:id="@+id/word_to_add1"
+        android:id="@+id/et_word_to_add1"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="@dimen/view_margin">
+        android:layout_margin="@dimen/view_margin"
+        android:hint="@string/hint_word_lang1">
         <requestFocus />
     </EditText>
+
     <EditText
-        android:id="@+id/word_to_add2"
+        android:id="@+id/et_word_to_add2"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
+        android:hint="@string/hint_word_lang2"
+        android:layout_margin="@dimen/view_margin" />
+
+    <AutoCompleteTextView
+        android:id="@+id/et_lesson"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/hint_lesson"
+        android:completionThreshold="1"
         android:layout_margin="@dimen/view_margin" />
 
     <CheckBox

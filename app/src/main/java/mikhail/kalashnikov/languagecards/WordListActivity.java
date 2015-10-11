@@ -20,6 +20,7 @@ public class WordListActivity extends AppCompatActivity implements LangCardDialo
 
     private LanguageCardListAdapter mAdapter;
     private DataModel mDataModel;
+    private String mOldLesson;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,13 +38,18 @@ public class WordListActivity extends AppCompatActivity implements LangCardDialo
         String strDeleted = getString(R.string.msg_deleted);
         String strUndo = getString(R.string.msg_btn_undo);
 
+        //TODO List with category. save expand option for each group
         listView.setAdapter(mAdapter);
         listView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 LanguageCard lc = mAdapter.getItem(position);
-                DialogFragment dialog = LangCardDialog.newInstance(lc.getId(), lc.getWord_lang1(), lc.getWord_lang2(), lc.getLearned());
+                mOldLesson = lc.getLesson();
+                DialogFragment dialog = LangCardDialog.newInstance(lc.getId(),
+                        lc.getWord_lang1(), lc.getWord_lang2(),
+                        lc.getLesson(),
+                        lc.getLearned());
                 dialog.show(getFragmentManager(), "LangCardDialog");
             }
         });
@@ -76,11 +82,11 @@ public class WordListActivity extends AppCompatActivity implements LangCardDialo
     }
 
     @Override
-    public void onLangCardEdited(long id, String word1, String word2, boolean learned) {
+    public void onLangCardEdited(long id, String word1, String word2, String lesson, boolean learned) {
         if (id == LangCardDialog.NEW_CARD_ID) {
             //TODO
         } else {
-            mDataModel.updateLanguageCardAsync(id, word1, word2, learned);
+            mDataModel.updateLanguageCardAsync(id, word1, word2, learned, lesson, mOldLesson);
         }
         mAdapter.notifyDataSetChanged();
     }
@@ -129,13 +135,13 @@ public class WordListActivity extends AppCompatActivity implements LangCardDialo
         @Override
         public void remove(LanguageCard langCard) {
             removedItem = langCard;
-            mDataModel.deleteLanguageCardAsync(langCard.getId());
+            mDataModel.deleteLanguageCardAsync(langCard.getId(), langCard.getLesson());
             notifyDataSetChanged();
         }
 
         public void undoRemove() {
             if (removedItem != null){
-                mDataModel.insertLanguageCardAsync(removedItem.getWord_lang1(), removedItem.getWord_lang2());
+                mDataModel.insertLanguageCardAsync(removedItem.getWord_lang1(), removedItem.getWord_lang2(), removedItem.getLesson());
                 notifyDataSetChanged();
             }
         }

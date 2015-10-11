@@ -19,5 +19,8 @@
     <string name="hello_world">Hello world!</string>
     <string name="cb_learned">Learned</string>
     <color name="doneTextViewColor">#B5B5B5</color>
+    <string name="hint_word_lang1">Word Lang1</string>
+    <string name="hint_word_lang2">Word Lang2</string>
+    <string name="hint_lesson">Lesson</string>
 
 </resources>

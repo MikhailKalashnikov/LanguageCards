@@ -68,11 +68,11 @@ public class LangCardsDBHelper extends SQLiteOpenHelper {
         if (oldVersion == 1 && newVersion >= 2) {
             db.execSQL("ALTER TABLE " + LanguageCard.TABLE_NAME +
                     " ADD COLUMN " + LanguageCard.COLUMN_LESSON+ " TEXT"
-                    + ");");
+                    + ";");
 
-            db.execSQL("UPDATE TABLE " + LanguageCard.TABLE_NAME +
+            db.execSQL("UPDATE " + LanguageCard.TABLE_NAME +
                     " SET " + LanguageCard.COLUMN_LESSON + " = 'first'"
-                    + ");");
+                    + ";");
         } else {
             Log.e(TAG, "Unknown DB update");
         }

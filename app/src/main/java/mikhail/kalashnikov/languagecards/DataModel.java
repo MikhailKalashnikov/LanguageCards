@@ -11,14 +11,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 
 public class DataModel implements LangCardsDBHelper.LangCardsDBHelperListener, SharedPreferences.OnSharedPreferenceChangeListener {
-
     interface ModelCallbacks {
         void onDataUploaded();
     }
     private static final String TAG = "MK";
-    private static final String ALL_LESSON = "#ALL#";
+    public static final String ALL_LESSON = "ALL";
     private static DataModel singleton =null;
     private LangCardsDBHelper mDBHelper;
     private boolean mIsDataUploaded = false;
@@ -29,6 +29,7 @@ public class DataModel implements LangCardsDBHelper.LangCardsDBHelperListener, S
     private boolean mDirection12;
     private Random mRandom;
     private ModelCallbacks mListener;
+    private String mCurrentLesson  = ALL_LESSON;
 
     public synchronized static DataModel getInstance(Context context){
         Log.d(TAG, "getInstance");
@@ -47,6 +48,7 @@ public class DataModel implements LangCardsDBHelper.LangCardsDBHelperListener, S
         mRandom = new Random(System.currentTimeMillis());
         mCurrentIdx = prefs.getInt(SettingsActivity.KEY_PREF_LAST_POS, 0);
         mDirection12 = prefs.getBoolean(SettingsActivity.KEY_PREF_DIRECTION, true);
+        mCurrentLesson = prefs.getString(SettingsActivity.KEY_PREF_LESSON, ALL_LESSON);
 
     }
 
@@ -63,49 +65,99 @@ public class DataModel implements LangCardsDBHelper.LangCardsDBHelperListener, S
     }
 
     String getNextWord(String lesson) {
-//        Log.d(TAG,"getNextWord mIsRandom=" + mIsRandom);
+        Log.d(TAG,"getNextWord lesson=" + lesson);
         //getNextPos
+        mCurrentLesson = lesson;
         if (mLangCardsLst.size() == 0){
             return null;
         }
 
-        if (mIsRandom) {
-            mCurrentIdx = mRandom.nextInt(mLangCardsList.size());
-        } else {
-            mCurrentIdx = (++mCurrentIdx) % mLangCardsList.size();
-        }
+        if (lesson.equals(ALL_LESSON)) {
+            if (mIsRandom) {
+                mCurrentIdx = mRandom.nextInt(mLangCardsLst.size());
+            } else {
+                mCurrentIdx = (++mCurrentIdx) % mLangCardsLst.size();
+            }
 
-        if (mLangCardsList.get(mCurrentIdx).getLearned()) { // skipped learned
-            int startIdx = mCurrentIdx;
-            do {
-                mCurrentIdx = (++mCurrentIdx) % mLangCardsList.size();
-            } while (mLangCardsList.get(mCurrentIdx).getLearned() && startIdx != mCurrentIdx);
-        }
-
-        if (mDirection12) {
-            return mLangCardsList.get(mCurrentIdx).getWord_lang1();
+            if (mLangCardsLst.get(mCurrentIdx).getLearned()) { // skipped learned
+                int startIdx = mCurrentIdx;
+                do {
+                    mCurrentIdx = (++mCurrentIdx) % mLangCardsLst.size();
+                } while (mLangCardsLst.get(mCurrentIdx).getLearned() && startIdx != mCurrentIdx);
+            }
+            if (mDirection12) {
+                return mLangCardsLst.get(mCurrentIdx).getWord_lang1();
+            } else {
+                return mLangCardsLst.get(mCurrentIdx).getWord_lang2();
+            }
         } else {
-            return mLangCardsList.get(mCurrentIdx).getWord_lang2();
+            if (!mLangCardsMap.containsKey(lesson) || mLangCardsMap.get(lesson).size() == 0) {
+                return null;
+            }
+
+            List<LanguageCard> LessonsList = mLangCardsMap.get(lesson);
+
+            if (mIsRandom) {
+                mCurrentIdx = mRandom.nextInt(LessonsList.size());
+            } else {
+                mCurrentIdx = (++mCurrentIdx) % LessonsList.size();
+            }
+
+            if (LessonsList.get(mCurrentIdx).getLearned()) { // skipped learned
+                int startIdx = mCurrentIdx;
+                do {
+                    mCurrentIdx = (++mCurrentIdx) % LessonsList.size();
+                } while (LessonsList.get(mCurrentIdx).getLearned() && startIdx != mCurrentIdx);
+            }
+
+            if (mDirection12) {
+                return LessonsList.get(mCurrentIdx).getWord_lang1();
+            } else {
+                return LessonsList.get(mCurrentIdx).getWord_lang2();
+            }
+
         }
     }
 
     String getCurrentWord() {
-        if (mLangCardsList.size() == 0){
+        if (mLangCardsLst.size() == 0){
             return null;
         }
-        if (mDirection12) {
-            return mLangCardsList.get(mCurrentIdx).getWord_lang1();
+        if (mCurrentLesson.equals(ALL_LESSON)) {
+            if (mCurrentIdx >= mLangCardsLst.size()) {
+                mCurrentIdx = 0;
+            }
+            if (mDirection12) {
+                return mLangCardsLst.get(mCurrentIdx).getWord_lang1();
+            } else {
+                return mLangCardsLst.get(mCurrentIdx).getWord_lang2();
+            }
         } else {
-            return mLangCardsList.get(mCurrentIdx).getWord_lang2();
+            if (mCurrentIdx >= mLangCardsMap.get(mCurrentLesson).size()) {
+                mCurrentIdx = 0;
+            }
+
+            if (mDirection12) {
+                return mLangCardsMap.get(mCurrentLesson).get(mCurrentIdx).getWord_lang1();
+            } else {
+                return mLangCardsMap.get(mCurrentLesson).get(mCurrentIdx).getWord_lang2();
+            }
         }
     }
 
-
     String getCurrentAnswer() {
-        if (mDirection12) {
-            return mLangCardsList.get(mCurrentIdx).getWord_lang2();
+        if (mCurrentLesson.equals(ALL_LESSON)) {
+            if (mDirection12) {
+                return mLangCardsLst.get(mCurrentIdx).getWord_lang2();
+            } else {
+                return mLangCardsLst.get(mCurrentIdx).getWord_lang1();
+            }
         } else {
-            return mLangCardsList.get(mCurrentIdx).getWord_lang1();
+            if (mDirection12) {
+                return mLangCardsMap.get(mCurrentLesson).get(mCurrentIdx).getWord_lang2();
+            } else {
+                return mLangCardsMap.get(mCurrentLesson).get(mCurrentIdx).getWord_lang1();
+            }
         }
     }
 
@@ -206,6 +258,10 @@ public class DataModel implements LangCardsDBHelper.LangCardsDBHelperListener, S
         }
         mLangCardsLst = languageCards;
 
+        if (!mLangCardsMap.containsKey(mCurrentLesson)) {
+            mCurrentLesson = ALL_LESSON;
+        }
+
         mListener.onDataUploaded();
     }
 
@@ -213,6 +269,9 @@ public class DataModel implements LangCardsDBHelper.LangCardsDBHelperListener, S
         return mLangCardsLst;
     }
 
+    public Set<String> getLessonsList() {
+        return mLangCardsMap.keySet();
+    }
 
     private class InsertLanguageCardTask extends AsyncTask<Void, Void, Void> {
         private LanguageCard languageCard;

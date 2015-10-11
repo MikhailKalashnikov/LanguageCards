@@ -29,8 +29,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
-
 
 public class MainActivity extends AppCompatActivity implements DataModel.ModelCallbacks,
         LangCardDialog.LangCardDialogListener{
@@ -42,6 +40,9 @@ public class MainActivity extends AppCompatActivity implements DataModel.ModelCa
     private TextView mWordLang1;
     private TextView mWordLang2;
     private Button mNextBtn;
+    private String mCurrentLesson;
+    private ArrayAdapter<String> mAdapterLessons;
+    private Spinner mLesson_spinner;
 
     enum ButtonMode {CHECK, NEXT}
     private ButtonMode mbtnMode;
@@ -59,6 +60,8 @@ public class MainActivity extends AppCompatActivity implements DataModel.ModelCa
         }else{
             model = (ModelFragment)getFragmentManager().findFragmentByTag(MODEL);
         }
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        mCurrentLesson = prefs.getString(SettingsActivity.KEY_PREF_LESSON, DataModel.ALL_LESSON);
 
         setContentView(R.layout.activity_main);
         mbtnMode = ButtonMode.NEXT;
@@ -71,25 +74,25 @@ public class MainActivity extends AppCompatActivity implements DataModel.ModelCa
                 if (mbtnMode == ButtonMode.CHECK) {
                     showAnswerWord();
                 } else if (mbtnMode == ButtonMode.NEXT) {
-                    showNextWord();
+                    showNextWord(mCurrentLesson);
                 }
             }
         });
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.recipe_toolbar);
-        Spinner lesson_spinner = (Spinner) findViewById(R.id.lessons_list);
-        List<String> items = new ArrayList<String>();
-        items.add("tets");
-        items.add("tets2");
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item,
-                items);
+        mLesson_spinner = (Spinner) findViewById(R.id.lessons_list);
 
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        lesson_spinner.setAdapter(adapter);
-        lesson_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        mAdapterLessons = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item,
+                new ArrayList<String>());
+
+        mAdapterLessons.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        mLesson_spinner.setAdapter(mAdapterLessons);
+        mLesson_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                Log.d(TAG, "Selecetd = " + parent.getAdapter().getItem(position));
+                Log.d(TAG, "Selected = " + parent.getAdapter().getItem(position));
+                mCurrentLesson = (String)parent.getAdapter().getItem(position);
+                showNextWord(mCurrentLesson);
             }
 
             @Override
@@ -120,7 +123,7 @@ public class MainActivity extends AppCompatActivity implements DataModel.ModelCa
         }
 
         if (id == R.id.action_add) {
-            DialogFragment dialog = LangCardDialog.newInstance(LangCardDialog.NEW_CARD_ID, null, null, false);
+            DialogFragment dialog = LangCardDialog.newInstance(LangCardDialog.NEW_CARD_ID, null, null, null, false);
             dialog.show(getFragmentManager(), "LangCardDialog");
         } else if (id == R.id.action_word_list) {
                 Intent i = new Intent(this, WordListActivity.class);
@@ -144,15 +147,15 @@ public class MainActivity extends AppCompatActivity implements DataModel.ModelCa
             mbtnMode = ButtonMode.CHECK;
             mNextBtn.setText(R.string.btn_check);
             mNextBtn.setBackgroundResource(R.drawable.check);
-            showNextWord();
+            showNextWord(mCurrentLesson);
         }
 
         return super.onOptionsItemSelected(item);
     }
 
 
-    private void showNextWord() {
-        mWordLang1.setText(mDataModel.getNextWord());
+    private void showNextWord(String lesson) {
+        mWordLang1.setText(mDataModel.getNextWord(lesson));
         mWordLang2.setText("");
         mbtnMode = ButtonMode.CHECK;
         mNextBtn.setText(R.string.btn_check);
@@ -178,17 +181,25 @@ public class MainActivity extends AppCompatActivity implements DataModel.ModelCa
     @Override
     public void onDataUploaded() {
         mDataModel = DataModel.getInstance(getApplicationContext());
+        refreshLessonsList();
         showCurrentWord();
     }
 
-    @Override
-    public void onLangCardEdited(long id, String word1, String word2, boolean learned) {
-        if (id == LangCardDialog.NEW_CARD_ID) {
-            mDataModel.insertLanguageCardAsync(word1, word2);
-        } else {
-            mDataModel.updateLanguageCardAsync(id, word1, word2, learned);
-        }
+    private void refreshLessonsList() {
+        mAdapterLessons.clear();
+        mAdapterLessons.add(DataModel.ALL_LESSON);
+        mAdapterLessons.addAll(mDataModel.getLessonsList());
+        mLesson_spinner.setSelection(mAdapterLessons.getPosition(mCurrentLesson));
+    }
 
+    @Override
+    public void onLangCardEdited(long id, String word1, String word2, String lesson, boolean learned) {
+        if (id == LangCardDialog.NEW_CARD_ID) {
+            mDataModel.insertLanguageCardAsync(word1, word2, lesson);
+        } else {
+            mDataModel.updateLanguageCardAsync(id, word1, word2, learned, lesson, lesson);// should not be called here
+        }
+        refreshLessonsList();
     }
 
     @Override
@@ -243,10 +254,11 @@ public class MainActivity extends AppCompatActivity implements DataModel.ModelCa
                     if (!line.contains("|")) {
                         Log.d(TAG, line);
                     } else {
-
-                        mDataModel.insertLanguageCardAsync(
-                                line.substring(0, line.indexOf("|")),
-                                line.substring(line.indexOf("|") + 1));
+                        int delimiterpos = line.indexOf("|");
+                        String word1 = line.substring(0, delimiterpos);
+                        String word2 = line.substring(delimiterpos + 1, (delimiterpos = line.indexOf("|", delimiterpos + 1)));
+                        String lesson = line.substring(delimiterpos + 1);
+                        mDataModel.insertLanguageCardAsync(word1, word2, lesson);
                     }
                 }
                 br.close();
@@ -266,6 +278,7 @@ public class MainActivity extends AppCompatActivity implements DataModel.ModelCa
             } else {
                 Toast.makeText(MainActivity.this, R.string.load_list_loaded, Toast.LENGTH_LONG).show();
             }
+            refreshLessonsList();
         }
     }
 
@@ -277,6 +290,7 @@ public class MainActivity extends AppCompatActivity implements DataModel.ModelCa
         SharedPreferences.Editor editor = prefs.edit();
         editor.putInt(SettingsActivity.KEY_PREF_LAST_POS, mDataModel.getCurrentPosition());
         editor.putBoolean(SettingsActivity.KEY_PREF_DIRECTION, mDataModel.getDirection());
+        editor.putString(SettingsActivity.KEY_PREF_LESSON, mCurrentLesson);
         editor.apply();
         super.onPause();
     }

@@ -9,24 +9,31 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.CheckBox;
-import android.widget.TextView;
+import android.widget.EditText;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class LangCardDialog extends DialogFragment {
     public static final int NEW_CARD_ID = -1;
     private LangCardDialogListener mListener;
 
     public interface LangCardDialogListener {
-        void onLangCardEdited(long id, String word1, String word2, boolean learned);
+        void onLangCardEdited(long id, String word1, String word2, String lesson, boolean learned);
     }
 
-    static LangCardDialog newInstance (long id, String word1, String word2, boolean learned) {
+    static LangCardDialog newInstance (long id, String word1, String word2, String lesson, boolean learned) {
         Log.d("MK", "LangCardDialog newInstance id="+id+ ", word1="+word1+ ", word2="+word2);
         LangCardDialog d = new LangCardDialog();
         Bundle args = new Bundle();
         args.putLong("id", id);
         args.putString("word1", word1);
         args.putString("word2", word2);
+        args.putString("lesson", lesson);
         args.putBoolean("learned", learned);
         d.setArguments(args);
         return d;
@@ -37,14 +44,20 @@ public class LangCardDialog extends DialogFragment {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         LayoutInflater inflater = getActivity().getLayoutInflater();
         View view = inflater.inflate(R.layout.lang_card_dialog, null);
-        final TextView tvWord1 = (TextView) view.findViewById(R.id.word_to_add1);
-        final TextView tvWord2 = (TextView) view.findViewById(R.id.word_to_add2);
+        final EditText etWord1 = (EditText) view.findViewById(R.id.et_word_to_add1);
+        final EditText etWord2 = (EditText) view.findViewById(R.id.et_word_to_add2);
+        final AutoCompleteTextView etLesson = (AutoCompleteTextView) view.findViewById(R.id.et_lesson);
+        List<String> lessons = new ArrayList<>();
+        lessons.addAll(DataModel.getInstance(getActivity().getApplicationContext()).getLessonsList());
+        etLesson.setAdapter(new ArrayAdapter<String>(getActivity(),
+                android.R.layout.simple_list_item_1, lessons));
         final CheckBox cbLearned = (CheckBox) view.findViewById(R.id.cb_learned);
         final long id = getArguments().getLong("id");
         boolean newCardMode = (id == NEW_CARD_ID);
         if(!newCardMode){
-            tvWord1.setText(getArguments().getString("word1"));
-            tvWord2.setText(getArguments().getString("word2"));
+            etWord1.setText(getArguments().getString("word1"));
+            etWord2.setText(getArguments().getString("word2"));
+            etLesson.setText(getArguments().getString("lesson"));
             cbLearned.setChecked(getArguments().getBoolean("learned"));
         } else {
             cbLearned.setVisibility(View.GONE);
@@ -58,7 +71,10 @@ public class LangCardDialog extends DialogFragment {
                 .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        mListener.onLangCardEdited(id, tvWord1.getText().toString(), tvWord2.getText().toString(), cbLearned.isChecked());
+                        mListener.onLangCardEdited(id, etWord1.getText().toString(),
+                                etWord2.getText().toString(),
+                                etLesson.getText().toString(),
+                                cbLearned.isChecked());
                     }
                 })
                 .setNegativeButton(android.R.string.cancel, null);
