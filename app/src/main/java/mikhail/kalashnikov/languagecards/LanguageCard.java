@@ -2,6 +2,8 @@
 
     import android.provider.BaseColumns;
 
+    import java.util.Comparator;
+
     public class LanguageCard implements BaseColumns {
         public static final String TABLE_NAME = "languagecard";
         public static final String COLUMN_WORD_LANG1 = "word_lang1";
@@ -92,5 +94,23 @@
                     ", learned=" + learned +
                     ", leeson=" + lesson +
                     '}';
+        }
+
+        public static Comparator<LanguageCard> getWord1Comparator() {
+            return new Comparator<LanguageCard>() {
+                @Override
+                public int compare(LanguageCard lhs, LanguageCard rhs) {
+                    return lhs.getWord_lang1().compareTo(rhs.getWord_lang1());
+                }
+            };
+        }
+
+        public static Comparator<LanguageCard> getWord2Comparator() {
+            return new Comparator<LanguageCard>() {
+                @Override
+                public int compare(LanguageCard lhs, LanguageCard rhs) {
+                    return lhs.getWord_lang2().compareTo(rhs.getWord_lang2());
+                }
+            };
         }
     }

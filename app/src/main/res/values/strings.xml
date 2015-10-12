@@ -5,6 +5,7 @@
     <string name="action_del">Delete Card</string>
     <string name="action_edit">Edit Card</string>
     <string name="action_switch_direction">Switch Direction</string>
+    <string name="action_sort">Sort</string>
 
     <string name="btn_next">Next</string>
     <string name="btn_check">Check</string>

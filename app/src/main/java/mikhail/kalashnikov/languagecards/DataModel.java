@@ -173,15 +173,23 @@ public class DataModel implements LangCardsDBHelper.LangCardsDBHelperListener, S
         return mDirection12;
     }
 
-    public void insertLanguageCardAsync(String word_lang1, String word_lang2, String lesson) {
+    /**
+     *
+     * @param word_lang1
+     * @param word_lang2
+     * @param lesson
+     * @return true - new lesson added.
+     */
+    public boolean insertLanguageCardAsync(String word_lang1, String word_lang2, String lesson) {
         Log.d(TAG, "insertLanguageCardAsync: word_lang1="+word_lang1 + ", word_lang2="+word_lang2
                 + " lesson =" + lesson);
         long groupId = 1;
+        boolean newLessonAdded = false;
         // check if already exist
         if (mLangCardsMap.containsKey(lesson)) {
             for (LanguageCard lc : mLangCardsMap.get(lesson)) {
                 if (lc.getWord_lang1().equalsIgnoreCase(word_lang1) && lc.getWord_lang2().equalsIgnoreCase(word_lang2)) {
-                    return;
+                    return newLessonAdded;
                 }
             }
         }
@@ -189,10 +197,12 @@ public class DataModel implements LangCardsDBHelper.LangCardsDBHelperListener, S
         LanguageCard lc = new LanguageCard(word_lang1, word_lang2, groupId, 0, lesson);
         if (!mLangCardsMap.containsKey(lesson)) {
             mLangCardsMap.put(lesson, new ArrayList<LanguageCard>());
+            newLessonAdded = true;
         }
         mLangCardsMap.get(lesson).add(lc);
         mLangCardsLst.add(lc);
         ModelFragment.executeAsyncTask(new InsertLanguageCardTask(lc));
+        return newLessonAdded;
     }
 
     /**

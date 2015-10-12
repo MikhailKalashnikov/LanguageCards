@@ -21,6 +21,7 @@ import android.widget.SimpleExpandableListAdapter;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,7 +34,6 @@ public class WordListActivity extends AppCompatActivity implements LangCardDialo
     private static final String ATTR_GROUP_NAME = "groupName";
     private static final String ATTR_ITEM_NAME = "itemName";
     private List<List<Map<String, LanguageCard>>> mChildData;
-    private int[] mChildTo;
     private String[] mChildFrom;
     private ActionMode mActiveMode = null;
     private ExpandableListView mListView;
@@ -41,6 +41,10 @@ public class WordListActivity extends AppCompatActivity implements LangCardDialo
     private int mEditedChildPosition;
     private List<Map<String, String>> mGroupData;
     private SharedPreferences mPrefs;
+    private int mSortMode = 0;
+    private static final int SORT_MODE_ID = 0;
+    private static final int SORT_MODE_WORD1 = 1;
+    private static final int SORT_MODE_WORD2 = 2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,6 +52,7 @@ public class WordListActivity extends AppCompatActivity implements LangCardDialo
 
         mPrefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         String expandGroupSettings = mPrefs.getString(SettingsActivity.KEY_PREF_EXPAND_GROUP, "0");
+        mSortMode = mPrefs.getInt(SettingsActivity.KEY_PREF_SORT_MODE, 0);
 
         setContentView(R.layout.activity_word_list);
 
@@ -78,7 +83,7 @@ public class WordListActivity extends AppCompatActivity implements LangCardDialo
         }
 
         mChildFrom  = new String[]{ATTR_ITEM_NAME};
-        mChildTo = new int[]{R.id.row_word1, R.id.row_word2};
+        int[] childTo = new int[]{R.id.row_word1, R.id.row_word2};
 
         mExpandableListAdapter = new SimpleExpandableListAdapter(
                 this,
@@ -89,7 +94,7 @@ public class WordListActivity extends AppCompatActivity implements LangCardDialo
                 mChildData,
                 R.layout.list_row,
                 mChildFrom,
-                mChildTo){
+                childTo){
             @Override
             public View getChildView(int groupPosition, int childPosition,
                                      boolean isLastChild, View convertView, ViewGroup parent) {
@@ -100,11 +105,11 @@ public class WordListActivity extends AppCompatActivity implements LangCardDialo
                 } else {
                     v = convertView;
                 }
-                bindView(v, mChildData.get(groupPosition).get(childPosition), mChildFrom, mChildTo);
+                bindView(v, mChildData.get(groupPosition).get(childPosition), mChildFrom);
                 return v;
             }
 
-            private void bindView(View view, Map<String, LanguageCard> data, String[] from, int[] to) {
+            private void bindView(View view, Map<String, LanguageCard> data, String[] from) {
                 ViewHolder holder = (ViewHolder) view.getTag();
 
                 if(holder==null){
@@ -161,8 +166,6 @@ public class WordListActivity extends AppCompatActivity implements LangCardDialo
             }
         }
 
-        //TODO List with category. save expand option for each group
-
         mListView.setLongClickable(true);
         mListView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
         mListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
@@ -177,24 +180,54 @@ public class WordListActivity extends AppCompatActivity implements LangCardDialo
                 return(true);
             }
         });
+
+        if (mSortMode != SORT_MODE_ID) {
+            sortList();
+        }
+    }
+
+    private void sortList() {
+        Map<String, List<LanguageCard>> langCardsMap = mDataModel.getLangCardsMap();
+        mChildData = new ArrayList<>();
+        for(String lesson: langCardsMap.keySet()){
+            List<Map<String,LanguageCard>> childDataItem = new ArrayList<>();
+            List<LanguageCard> lcList = langCardsMap.get(lesson);
+
+            if(mSortMode == SORT_MODE_WORD1) {
+                Collections.sort(lcList, LanguageCard.getWord1Comparator());
+            } else if(mSortMode == SORT_MODE_WORD2) {
+                Collections.sort(lcList, LanguageCard.getWord2Comparator());
+            }
+
+            for(LanguageCard i: lcList){
+                Map<String, LanguageCard> m = new HashMap<>();
+                m.put(ATTR_ITEM_NAME, i);
+                childDataItem.add(m);
+            }
+
+            mChildData.add(childDataItem);
+        }
+
+        mExpandableListAdapter.notifyDataSetChanged();
     }
 
     @Override
     public void onLangCardEdited(long id, String word1, String word2, String lesson, boolean learned) {
-        boolean newLessonAdded = false;
+        boolean newLessonAdded;
         if (id == LangCardDialog.NEW_CARD_ID) {
-            //Should not be called
+            newLessonAdded = mDataModel.insertLanguageCardAsync(word1, word2, lesson);
         } else {
             newLessonAdded = mDataModel.updateLanguageCardAsync(id, word1, word2, learned, lesson, mOldLesson);
         }
 
+        //TODO update list when add new
         if (!lesson.equals(mOldLesson)) {
             LanguageCard lc = mChildData.get(mEditedGroupPosition).get(mEditedChildPosition).get(ATTR_ITEM_NAME);
             mChildData.get(mEditedGroupPosition).remove(mEditedChildPosition);
 
             if (newLessonAdded) {
                 Map<String, String> m = new HashMap<>();
-                m.put(ATTR_GROUP_NAME, lesson == null? "-": lesson);
+                m.put(ATTR_GROUP_NAME, lesson);
                 mGroupData.add(m);
 
                 List<Map<String,LanguageCard>> childDataItem = new ArrayList<>();
@@ -284,15 +317,37 @@ public class WordListActivity extends AppCompatActivity implements LangCardDialo
     @Override
     protected void onPause() {
 
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        SharedPreferences.Editor editor = prefs.edit();
+        mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences.Editor editor = mPrefs.edit();
         StringBuilder groupState = new StringBuilder(mGroupData.size()) ;
         for (int i = 0; i < mGroupData.size(); i++){
             groupState.append(mListView.isGroupExpanded(i)?'1':'0');
         }
         editor.putString(SettingsActivity.KEY_PREF_EXPAND_GROUP, groupState.toString());
+        editor.putInt(SettingsActivity.KEY_PREF_SORT_MODE, mSortMode);
         editor.apply();
         super.onPause();
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_word_list, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
+        if (id == R.id.action_add) {
+            DialogFragment dialog = LangCardDialog.newInstance(LangCardDialog.NEW_CARD_ID, null, null, null, false);
+            dialog.show(getFragmentManager(), "LangCardDialog");
+
+        } else if (id == R.id.action_sort) {
+            mSortMode = (++mSortMode) % 3;
+            sortList();
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
 }

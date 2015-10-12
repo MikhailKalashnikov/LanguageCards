@@ -30,8 +30,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity implements DataModel.ModelCallbacks,
-        LangCardDialog.LangCardDialogListener{
+public class MainActivity extends AppCompatActivity implements DataModel.ModelCallbacks {
 
     private static final String MODEL="model";
     private static final int FILE_SELECT_CODE = 1;
@@ -122,10 +121,8 @@ public class MainActivity extends AppCompatActivity implements DataModel.ModelCa
             return true;
         }
 
-        if (id == R.id.action_add) {
-            DialogFragment dialog = LangCardDialog.newInstance(LangCardDialog.NEW_CARD_ID, null, null, null, false);
-            dialog.show(getFragmentManager(), "LangCardDialog");
-        } else if (id == R.id.action_word_list) {
+
+        if (id == R.id.action_word_list) {
                 Intent i = new Intent(this, WordListActivity.class);
                 startActivity(i);
         } else if (id == R.id.load_list) {
@@ -190,16 +187,6 @@ public class MainActivity extends AppCompatActivity implements DataModel.ModelCa
         mAdapterLessons.add(DataModel.ALL_LESSON);
         mAdapterLessons.addAll(mDataModel.getLessonsList());
         mLesson_spinner.setSelection(mAdapterLessons.getPosition(mCurrentLesson));
-    }
-
-    @Override
-    public void onLangCardEdited(long id, String word1, String word2, String lesson, boolean learned) {
-        if (id == LangCardDialog.NEW_CARD_ID) {
-            mDataModel.insertLanguageCardAsync(word1, word2, lesson);
-        } else {
-            mDataModel.updateLanguageCardAsync(id, word1, word2, learned, lesson, lesson);// should not be called here
-        }
-        refreshLessonsList();
     }
 
     @Override
