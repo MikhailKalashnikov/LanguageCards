@@ -82,7 +82,7 @@ public class MainActivity extends AppCompatActivity implements DataModel.ModelCa
         Toolbar toolbar = (Toolbar) findViewById(R.id.recipe_toolbar);
         mLesson_spinner = (Spinner) findViewById(R.id.lessons_list);
 
-        mAdapterLessons = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item,
+        mAdapterLessons = new ArrayAdapter<>(this, R.layout.spinner_item,
                 new ArrayList<String>());
 
         mAdapterLessons.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);

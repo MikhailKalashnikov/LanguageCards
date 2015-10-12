@@ -65,7 +65,7 @@ public class DataModel implements LangCardsDBHelper.LangCardsDBHelperListener, S
     }
 
     String getNextWord(String lesson) {
-        Log.d(TAG,"getNextWord lesson=" + lesson);
+        //Log.d(TAG,"getNextWord lesson=" + lesson);
         //getNextPos
         mCurrentLesson = lesson;
         if (mLangCardsLst.size() == 0){
@@ -195,38 +195,41 @@ public class DataModel implements LangCardsDBHelper.LangCardsDBHelperListener, S
         ModelFragment.executeAsyncTask(new InsertLanguageCardTask(lc));
     }
 
-    public void updateLanguageCardAsync(long id, String word_lang1, String word_lang2, boolean learned,
+    /**
+     *
+     * @param id
+     * @param word_lang1
+     * @param word_lang2
+     * @param learned
+     * @param lesson
+     * @param oldlesson
+     * @return true - new lesson added.
+     */
+    public boolean updateLanguageCardAsync(long id, String word_lang1, String word_lang2, boolean learned,
                                         String lesson, String oldlesson) {
-        Log.d(TAG, "UpdateLanguageCardTask: id= " + id + ", word_lang1=" + word_lang1 + ", word_lang2=" + word_lang2);
-        if (mLangCardsMap.containsKey(lesson)) {
-            for (LanguageCard lc : mLangCardsMap.get(lesson)) {
-                if (lc.getId() == id) {
-                    lc.setWord_lang1(word_lang1);
-                    lc.setWord_lang2(word_lang2);
-                    lc.setLearned(learned ? 1 : 0);
-                    lc.setLesson(lesson);
-                    ModelFragment.executeAsyncTask(new UpdateLanguageCardTask(lc));
-                    break;
+        Log.d(TAG, "UpdateLanguageCardTask: id= " + id + ", word_lang1=" + word_lang1 + ", word_lang2=" + word_lang2
+            + ", lesson=" + lesson + ", oldlesson=" + oldlesson);
+        boolean newLessonAdded = false;
+        if (!mLangCardsMap.containsKey(lesson)) {
+            mLangCardsMap.put(lesson, new ArrayList<LanguageCard>());
+            newLessonAdded = true;
+        }
+        for (LanguageCard lc : mLangCardsMap.get(oldlesson)) {
+            if (lc.getId() == id) {
+                mLangCardsMap.get(oldlesson).remove(lc);
+                if (mLangCardsMap.get(oldlesson).size() == 0) {
+                    mLangCardsMap.remove(oldlesson);
                 }
-            }
-        } else {
-            for (LanguageCard lc : mLangCardsMap.get(oldlesson)) {
-                if (lc.getId() == id) {
-                    mLangCardsMap.get(oldlesson).remove(lc);
-                    if (mLangCardsMap.get(oldlesson).size() == 0) {
-                        mLangCardsMap.remove(oldlesson);
-                    }
-                    mLangCardsMap.put(lesson, new ArrayList<LanguageCard>());
-                    lc.setWord_lang1(word_lang1);
-                    lc.setWord_lang2(word_lang2);
-                    lc.setLearned(learned ? 1 : 0);
-                    lc.setLesson(lesson);
-                    mLangCardsMap.get(lesson).add(lc);
-                    ModelFragment.executeAsyncTask(new UpdateLanguageCardTask(lc));
-                    break;
-                }
+                lc.setWord_lang1(word_lang1);
+                lc.setWord_lang2(word_lang2);
+                lc.setLearned(learned ? 1 : 0);
+                lc.setLesson(lesson);
+                mLangCardsMap.get(lesson).add(lc);
+                ModelFragment.executeAsyncTask(new UpdateLanguageCardTask(lc));
+                break;
             }
         }
+        return newLessonAdded;
     }
 
     public void deleteLanguageCardAsync(long id, String lesson) {
@@ -237,6 +240,7 @@ public class DataModel implements LangCardsDBHelper.LangCardsDBHelperListener, S
                 if (mLangCardsMap.get(lesson).size() == 0) {
                     mLangCardsMap.remove(lesson);
                 }
+                Log.d(TAG, "deleteLanguageCardAsync: id= " + lc.toString());
                 mLangCardsLst.remove(lc);
                 ModelFragment.executeAsyncTask(new DeleteLanguageCardTask(id));
                 break;
@@ -265,8 +269,8 @@ public class DataModel implements LangCardsDBHelper.LangCardsDBHelperListener, S
         mListener.onDataUploaded();
     }
 
-    public List<LanguageCard> getLangCardsList() {
-        return mLangCardsLst;
+    public Map<String, List<LanguageCard>> getLangCardsMap() {
+        return mLangCardsMap;
     }
 
     public Set<String> getLessonsList() {
