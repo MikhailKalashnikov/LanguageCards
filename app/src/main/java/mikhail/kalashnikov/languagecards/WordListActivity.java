@@ -1,9 +1,11 @@
 package mikhail.kalashnikov.languagecards;
 
 import android.app.DialogFragment;
+import android.content.SharedPreferences;
 import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.view.ActionMode;
 import android.util.Log;
@@ -38,10 +40,14 @@ public class WordListActivity extends AppCompatActivity implements LangCardDialo
     private int mEditedGroupPosition;
     private int mEditedChildPosition;
     private List<Map<String, String>> mGroupData;
+    private SharedPreferences mPrefs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        mPrefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        String expandGroupSettings = mPrefs.getString(SettingsActivity.KEY_PREF_EXPAND_GROUP, "0");
 
         setContentView(R.layout.activity_word_list);
 
@@ -148,8 +154,11 @@ public class WordListActivity extends AppCompatActivity implements LangCardDialo
             }
         });
 
-        for(int i=0;i<mGroupData.size();i++){
-            mListView.expandGroup(i);
+        for(int i = 0; i < mGroupData.size(); i++){
+            if (i < expandGroupSettings.length()
+                    && expandGroupSettings.charAt(i) == '1') {
+                mListView.expandGroup(i);
+            }
         }
 
         //TODO List with category. save expand option for each group
@@ -271,5 +280,19 @@ public class WordListActivity extends AppCompatActivity implements LangCardDialo
 
     };
 
+
+    @Override
+    protected void onPause() {
+
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences.Editor editor = prefs.edit();
+        StringBuilder groupState = new StringBuilder(mGroupData.size()) ;
+        for (int i = 0; i < mGroupData.size(); i++){
+            groupState.append(mListView.isGroupExpanded(i)?'1':'0');
+        }
+        editor.putString(SettingsActivity.KEY_PREF_EXPAND_GROUP, groupState.toString());
+        editor.apply();
+        super.onPause();
+    }
 
 }
