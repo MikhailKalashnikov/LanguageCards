@@ -89,9 +89,10 @@ public class MainActivity extends AppCompatActivity implements DataModel.ModelCa
         mLesson_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                Log.d(TAG, "Selected = " + parent.getAdapter().getItem(position));
+                //Log.d(TAG, "Selected = " + parent.getAdapter().getItem(position));
                 mCurrentLesson = (String)parent.getAdapter().getItem(position);
-                showNextWord(mCurrentLesson);
+                mDataModel.setLesson(mCurrentLesson);
+                showCurrentWord();
             }
 
             @Override

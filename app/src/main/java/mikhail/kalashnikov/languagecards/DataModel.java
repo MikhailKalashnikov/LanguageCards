@@ -165,6 +165,10 @@ public class DataModel implements LangCardsDBHelper.LangCardsDBHelperListener, S
         mDirection12 = !mDirection12;
     }
 
+    public void setLesson(String lesson) {
+        mCurrentLesson = lesson;
+    }
+
     public int getCurrentPosition() {
         return mCurrentIdx;
     }
