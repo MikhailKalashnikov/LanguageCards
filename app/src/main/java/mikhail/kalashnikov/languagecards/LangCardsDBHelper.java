@@ -41,6 +41,7 @@ public class LangCardsDBHelper extends SQLiteOpenHelper {
                     + LanguageCard.COLUMN_WORD_LANG1 + " TEXT,"
                     + LanguageCard.COLUMN_WORD_LANG2 + " TEXT,"
                     + LanguageCard.COLUMN_GROUP_ID + " INTEGER,"
+                    + LanguageCard.COLUMN_LESSON + " TEXT,"
                     + LanguageCard.COLUMN_LEARNED + " INTEGER"
                     + ");");
 

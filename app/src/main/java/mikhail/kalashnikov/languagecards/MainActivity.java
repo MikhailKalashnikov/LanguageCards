@@ -42,6 +42,8 @@ public class MainActivity extends AppCompatActivity implements DataModel.ModelCa
     private String mCurrentLesson;
     private ArrayAdapter<String> mAdapterLessons;
     private Spinner mLesson_spinner;
+    private Menu mMenu;
+    private boolean mResetLearned = false;
 
     enum ButtonMode {CHECK, NEXT}
     private ButtonMode mbtnMode;
@@ -106,6 +108,7 @@ public class MainActivity extends AppCompatActivity implements DataModel.ModelCa
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
+        mMenu = menu;
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
@@ -146,6 +149,10 @@ public class MainActivity extends AppCompatActivity implements DataModel.ModelCa
             mNextBtn.setText(R.string.btn_check);
             mNextBtn.setBackgroundResource(R.drawable.check);
             showNextWord(mCurrentLesson);
+        } else if (id == R.id.action_learned) {
+            mDataModel.markCurrentAsLearned();
+            item.setIcon(android.R.drawable.checkbox_on_background);
+            mResetLearned = true;
         }
 
         return super.onOptionsItemSelected(item);
@@ -158,6 +165,11 @@ public class MainActivity extends AppCompatActivity implements DataModel.ModelCa
         mbtnMode = ButtonMode.CHECK;
         mNextBtn.setText(R.string.btn_check);
         mNextBtn.setBackgroundResource(R.drawable.check);
+
+        if(mResetLearned) {
+            mMenu.findItem(R.id.action_learned).setIcon(android.R.drawable.checkbox_off_background);
+            mResetLearned = false;
+        }
     }
 
     private void showCurrentWord() {

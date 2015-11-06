@@ -3,6 +3,12 @@
     xmlns:tools="http://schemas.android.com/tools" tools:context=".MainActivity">
 
     <item
+        android:id="@+id/action_learned"
+        android:title="@string/cb_learned"
+        android:icon="@android:drawable/checkbox_off_background"
+        app:showAsAction="ifRoom" />
+
+    <item
         android:id="@+id/action_switch_direction"
         android:title="@string/action_switch_direction"
         android:icon="@android:drawable/ic_menu_rotate"
