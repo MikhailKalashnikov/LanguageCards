@@ -5,5 +5,9 @@
         android:title="Random"
         android:defaultValue="true"
         />
-
+    <CheckBoxPreference
+        android:key = "pref_show_learned"
+        android:title="Show Learned"
+        android:defaultValue="true"
+        />
 </PreferenceScreen>

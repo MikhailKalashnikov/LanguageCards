@@ -120,7 +120,8 @@ public class WordListActivity extends AppCompatActivity implements LangCardDialo
                 holder.word1.setText(item.getWord_lang1());
                 holder.word2.setText(item.getWord_lang2());
 
-                if(item.getLearned()){
+                boolean showLearnedCrossed = false;
+                if(showLearnedCrossed && item.getLearned()){
                     holder.word1.setPaintFlags(holder.word1.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
                     holder.word1.setBackgroundResource(R.color.doneTextViewColor);
                     holder.word1.setTypeface(null, Typeface.ITALIC);

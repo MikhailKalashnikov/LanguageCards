@@ -55,4 +55,13 @@
         style="@style/TextStyle"
         android:layout_margin="@dimen/view_margin"/>
 
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/cb_learned"
+        android:id="@+id/cb_word_learned"
+        android:layout_above="@+id/btn_check"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
+
 </RelativeLayout>

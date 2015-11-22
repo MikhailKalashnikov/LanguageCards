@@ -30,6 +30,7 @@ public class DataModel implements LangCardsDBHelper.LangCardsDBHelperListener, S
     private LanguageCard mCurrentLangCard = null;
     private boolean mDirection12;
     private Random mRandom;
+    private boolean mShowLearned;
     private ModelCallbacks mListener;
     private String mCurrentLesson  = ALL_LESSON;
 
@@ -47,6 +48,7 @@ public class DataModel implements LangCardsDBHelper.LangCardsDBHelperListener, S
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         prefs.registerOnSharedPreferenceChangeListener(this);
         mIsRandom = prefs.getBoolean(SettingsActivity.KEY_PREF_IS_RANDOM, true);
+        mShowLearned = prefs.getBoolean(SettingsActivity.KEY_PREF_SHOW_LEARNED, false);
         mRandom = new Random(System.currentTimeMillis());
         mCurrentIdx = prefs.getInt(SettingsActivity.KEY_PREF_LAST_POS, 0);
         mDirection12 = prefs.getBoolean(SettingsActivity.KEY_PREF_DIRECTION, true);
@@ -81,7 +83,7 @@ public class DataModel implements LangCardsDBHelper.LangCardsDBHelperListener, S
                 mCurrentIdx = (++mCurrentIdx) % mLangCardsLst.size();
             }
 
-            if (mLangCardsLst.get(mCurrentIdx).getLearned()) { // skipped learned
+            if (!mShowLearned && mLangCardsLst.get(mCurrentIdx).getLearned()) { // skipped learned
                 int startIdx = mCurrentIdx;
                 do {
                     mCurrentIdx = (++mCurrentIdx) % mLangCardsLst.size();
@@ -107,7 +109,7 @@ public class DataModel implements LangCardsDBHelper.LangCardsDBHelperListener, S
                 mCurrentIdx = (++mCurrentIdx) % LessonsList.size();
             }
 
-            if (LessonsList.get(mCurrentIdx).getLearned()) { // skipped learned
+            if (!mShowLearned && LessonsList.get(mCurrentIdx).getLearned()) { // skipped learned
                 int startIdx = mCurrentIdx;
                 do {
                     mCurrentIdx = (++mCurrentIdx) % LessonsList.size();
@@ -151,8 +153,8 @@ public class DataModel implements LangCardsDBHelper.LangCardsDBHelperListener, S
         }
     }
 
-    public void markCurrentAsLearned() {
-        mCurrentLangCard.setLearned(1);
+    public void setLearned(boolean learned) {
+        mCurrentLangCard.setLearned(learned? 1: 0);
         updateLanguageCardAsync(mCurrentLangCard.getId(),
                 mCurrentLangCard.getWord_lang1(),
                 mCurrentLangCard.getWord_lang2(),
@@ -174,6 +176,14 @@ public class DataModel implements LangCardsDBHelper.LangCardsDBHelperListener, S
             } else {
                 return mLangCardsMap.get(mCurrentLesson).get(mCurrentIdx).getWord_lang1();
             }
+        }
+    }
+
+    boolean getCurrentIsLearned() {
+        if (mCurrentLesson.equals(ALL_LESSON)) {
+            return mLangCardsLst.get(mCurrentIdx).getLearned();
+        } else {
+            return mLangCardsMap.get(mCurrentLesson).get(mCurrentIdx).getLearned();
         }
     }
 
