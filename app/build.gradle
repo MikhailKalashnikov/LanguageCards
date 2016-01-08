@@ -1,4 +1,5 @@
 apply plugin: 'com.android.application'
+apply plugin: 'com.android.databinding'
 
 android {
     compileSdkVersion 22
@@ -24,4 +25,11 @@ dependencies {
     compile 'com.android.support:appcompat-v7:22.2.1'
     compile 'com.android.support:support-v4:22.2.1'
     compile 'com.android.support:design:22.2.0'
+    // Unit testing dependencies
+    androidTestCompile 'junit:junit:4.12'
+    // Set this dependency if you want to use Mockito
+    androidTestCompile 'org.mockito:mockito-core:1.10.19'
+    // Set this dependency if you want to use Hamcrest matching
+    androidTestCompile 'org.hamcrest:hamcrest-library:1.1'
+
 }

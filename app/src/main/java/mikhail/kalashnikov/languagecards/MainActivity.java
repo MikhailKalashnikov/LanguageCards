@@ -260,7 +260,7 @@ public class MainActivity extends AppCompatActivity implements DataModel.ModelCa
                         String word1 = line.substring(0, delimiterpos);
                         String word2 = line.substring(delimiterpos + 1, (delimiterpos = line.indexOf("|", delimiterpos + 1)));
                         String lesson = line.substring(delimiterpos + 1);
-                        mDataModel.insertLanguageCardAsync(word1, word2, lesson);
+                        mDataModel.insertLanguageCard(word1, word2, lesson, false);
                     }
                 }
                 br.close();

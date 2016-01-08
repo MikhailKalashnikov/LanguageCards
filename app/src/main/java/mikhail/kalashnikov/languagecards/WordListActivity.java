@@ -185,6 +185,8 @@ public class WordListActivity extends AppCompatActivity implements LangCardDialo
         if (mSortMode != SORT_MODE_ID) {
             sortList();
         }
+
+        setTitle(getResources().getString(R.string.title_activity_word_list) + " : " + mDataModel.getTotalCount());
     }
 
     private void sortList() {
@@ -216,7 +218,7 @@ public class WordListActivity extends AppCompatActivity implements LangCardDialo
     public void onLangCardEdited(long id, String word1, String word2, String lesson, boolean learned) {
         boolean newLessonAdded;
         if (id == LangCardDialog.NEW_CARD_ID) {
-            newLessonAdded = mDataModel.insertLanguageCardAsync(word1, word2, lesson);
+            newLessonAdded = mDataModel.insertLanguageCard(word1, word2, lesson, true);
         } else {
             newLessonAdded = mDataModel.updateLanguageCardAsync(id, word1, word2, learned, lesson, mOldLesson);
         }
