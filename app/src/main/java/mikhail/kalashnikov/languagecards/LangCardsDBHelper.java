@@ -117,9 +117,9 @@ public class LangCardsDBHelper extends SQLiteOpenHelper {
                 }
 
                 c.close();
-                for(LanguageCard s: mLangCardsList){
-                    Log.d(TAG, s.toString());
-                }
+//                for(LanguageCard s: mLangCardsList){
+//                    Log.d(TAG, s.toString());
+//                }
 
             }catch (Exception e) {
                 Log.e(TAG, "GetDataTask", e);

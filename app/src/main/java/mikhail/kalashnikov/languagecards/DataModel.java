@@ -128,6 +128,19 @@ public class DataModel implements LangCardsDBHelper.LangCardsDBHelperListener, S
         }
     }
 
+
+    String getCurrentWordLesson() {
+        if (mLangCardsLst.size() == 0){
+            return ALL_LESSON;
+        }
+        if (mCurrentLesson.equals(ALL_LESSON)) {
+            return mLangCardsLst.get(mCurrentIdx).getLesson();
+        } else {
+            return mCurrentLesson;
+        }
+
+    }
+
     String getCurrentWord() {
         if (mLangCardsLst.size() == 0){
             mCurrentLangCard = null;

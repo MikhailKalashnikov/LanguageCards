@@ -21,5 +21,6 @@
     <string name="hint_word_lang1">Word Lang1</string>
     <string name="hint_word_lang2">Word Lang2</string>
     <string name="hint_lesson">Lesson</string>
+    <string name="search_title">Search</string>
 
 </resources>

@@ -39,6 +39,7 @@ public class MainActivity extends AppCompatActivity implements DataModel.ModelCa
     private DataModel mDataModel;
     private TextView mWordLang1;
     private TextView mWordLang2;
+    private TextView mLesson;
     private Button mNextBtn;
     private String mCurrentLesson;
     private ArrayAdapter<String> mAdapterLessons;
@@ -76,6 +77,7 @@ public class MainActivity extends AppCompatActivity implements DataModel.ModelCa
 
         mWordLang1 = (TextView) findViewById(R.id.word_lang1);
         mWordLang2 = (TextView) findViewById(R.id.word_lang2);
+        mLesson = (TextView) findViewById(R.id.lesson);
         mNextBtn = (Button) findViewById(R.id.btn_check);
         mNextBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -170,6 +172,12 @@ public class MainActivity extends AppCompatActivity implements DataModel.ModelCa
         mbtnMode = ButtonMode.CHECK;
         mNextBtn.setText(R.string.btn_check);
         mNextBtn.setBackgroundResource(R.drawable.check);
+        if (lesson.equals(DataModel.ALL_LESSON)) {
+            mLesson.setVisibility(View.VISIBLE);
+            mLesson.setText(mDataModel.getCurrentWordLesson());
+        } else {
+            mLesson.setVisibility(View.INVISIBLE);
+        }
 
     }
 
@@ -180,6 +188,12 @@ public class MainActivity extends AppCompatActivity implements DataModel.ModelCa
         mbtnMode = ButtonMode.CHECK;
         mNextBtn.setText(R.string.btn_check);
         mNextBtn.setBackgroundResource(R.drawable.check);
+        if (mCurrentLesson.equals(DataModel.ALL_LESSON)) {
+            mLesson.setVisibility(View.VISIBLE);
+            mLesson.setText(mDataModel.getCurrentWordLesson());
+        } else {
+            mLesson.setVisibility(View.INVISIBLE);
+        }
     }
 
     private void showAnswerWord() {
